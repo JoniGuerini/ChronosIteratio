@@ -208,17 +208,36 @@ const HeaderStats = ({ type, balance, activeTime, nextPointTime }) => {
 
 const TalentsView = () => {
     const { gameState, buyTalent, respecTalents } = useGame();
-    const scrollContainerRef = useRef(null);
+    const [dragConstraints, setDragConstraints] = React.useState({ left: 0, right: 0, top: 0, bottom: 0 });
+    const dragControls = useRef({ x: 0, y: 0 });
 
-    const focusLevel = gameState.talents['focus_mastery'] || 0;
-    const focusInterval = 60 - (focusLevel * 5);
-
-    // Auto-scroll to bottom on mount
+    // Calculate constraints based on window/container size
     useEffect(() => {
-        if (scrollContainerRef.current) {
-            scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
-        }
+        const updateConstraints = () => {
+            if (scrollContainerRef.current) {
+                const { clientWidth, clientHeight } = scrollContainerRef.current;
+                setDragConstraints({
+                    left: -(CANVAS_WIDTH - clientWidth),
+                    right: 100, // Small buffer
+                    top: -(CANVAS_HEIGHT - clientHeight),
+                    bottom: 100 // Small buffer
+                });
+            }
+        };
+
+        updateConstraints();
+        window.addEventListener('resize', updateConstraints);
+        return () => window.removeEventListener('resize', updateConstraints);
     }, []);
+
+    // Initial position: center horizontally and show bottom vertically
+    const initialX = useMemo(() => {
+        if (typeof window === 'undefined') return 0;
+        const containerWidth = window.innerWidth; // Approximate
+        return -(CENTER_X - containerWidth / 2);
+    }, []);
+
+    const initialY = -(CANVAS_HEIGHT - 600); // Approximate bottom view
 
     // Tree Rendering Helpers
     const getCoords = (talent) => ({
@@ -312,48 +331,58 @@ const TalentsView = () => {
 
             <div
                 ref={scrollContainerRef}
-                className="flex-1 relative overflow-y-auto overflow-x-hidden custom-scrollbar p-10 flex justify-center"
+                className="flex-1 relative overflow-hidden p-0 cursor-grab active:cursor-grabbing touch-none"
             >
-                <svg
-                    width={CANVAS_WIDTH}
-                    height={CANVAS_HEIGHT}
-                    viewBox={`0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}`}
-                    className="overflow-visible"
+                <motion.div
+                    drag
+                    dragConstraints={dragConstraints}
+                    dragElastic={0.05}
+                    dragMomentum={true}
+                    initial={{ x: initialX, y: initialY }}
+                    className="w-fit h-fit"
                 >
-                    {/* --- BACKGROUND LINES --- */}
-                    {treeData.edges.map(edge => (
-                        edge.from === null ? (
-                            <line
-                                key={edge.key}
-                                x1={edge.start.x} y1={edge.start.y} x2={edge.end.x} y2={edge.end.y}
-                                className={`transition-opacity duration-700 ${edge.color === 'blue' ? 'stroke-blue-500/40' : 'stroke-amber-500/40'} stroke-2`}
-                            />
-                        ) : (
-                            <ConnectionLine
-                                key={edge.key}
-                                start={edge.start}
-                                end={edge.end}
-                                color={edge.color}
-                                isActive={edge.isActive}
-                            />
-                        )
-                    ))}
+                    <svg
+                        width={CANVAS_WIDTH}
+                        height={CANVAS_HEIGHT}
+                        viewBox={`0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}`}
+                        className="overflow-visible pointer-events-none"
+                    >
+                        {/* --- BACKGROUND LINES --- */}
+                        {treeData.edges.map(edge => (
+                            edge.from === null ? (
+                                <line
+                                    key={edge.key}
+                                    x1={edge.start.x} y1={edge.start.y} x2={edge.end.x} y2={edge.end.y}
+                                    className={`transition-opacity duration-700 ${edge.color === 'blue' ? 'stroke-blue-500/40' : 'stroke-amber-500/40'} stroke-2`}
+                                />
+                            ) : (
+                                <ConnectionLine
+                                    key={edge.key}
+                                    start={edge.start}
+                                    end={edge.end}
+                                    color={edge.color}
+                                    isActive={edge.isActive}
+                                />
+                            )
+                        ))}
 
-                    {/* --- INTERACTIVE NODES --- */}
-                    {/* Origin Node */}
-                    <circle cx={originCoords.x} cy={originCoords.y} r={10} className="fill-white animate-pulse" />
+                        {/* --- INTERACTIVE NODES --- */}
+                        {/* Origin Node */}
+                        <circle cx={originCoords.x} cy={originCoords.y} r={10} className="fill-white animate-pulse" />
 
-                    {treeData.nodes.map(node => (
-                        <TalentNode
-                            key={node.talent.id}
-                            talent={node.talent}
-                            level={node.level}
-                            isPurchasable={node.isPurchasable}
-                            canAfford={node.canAfford}
-                            buyTalent={buyTalent}
-                        />
-                    ))}
-                </svg>
+                        {treeData.nodes.map(node => (
+                            <g key={node.talent.id} className="pointer-events-auto">
+                                <TalentNode
+                                    talent={node.talent}
+                                    level={node.level}
+                                    isPurchasable={node.isPurchasable}
+                                    canAfford={node.canAfford}
+                                    buyTalent={buyTalent}
+                                />
+                            </g>
+                        ))}
+                    </svg>
+                </motion.div>
             </div>
         </div>
     );
