@@ -380,7 +380,6 @@ const TalentsView = () => {
                         </svg>
                     </div>
                 </motion.div>
-                )}
             </div>
         </div>
     );
