@@ -34,7 +34,7 @@ const GameNavigation = ({ activeView, setView }) => {
                         >
                             <div className="flex items-center gap-2">
                                 <Icon size={16} />
-                                <span>{tab.label}</span>
+                                <span className="hidden md:inline">{tab.label}</span>
                             </div>
                             {tab.disabled && (
                                 <span className="absolute -top-1 -right-1 flex h-2 w-2">

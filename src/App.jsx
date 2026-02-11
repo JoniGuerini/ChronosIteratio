@@ -121,7 +121,7 @@ function GameContent() {
 
   return (
     <Layout>
-      <div className="h-full w-full flex flex-col px-4 lg:px-8 pt-6 pb-0">
+      <div className="h-full w-full flex flex-col px-2 md:px-4 lg:px-8 pt-4 md:pt-6 pb-0">
         {/* Fixed Top Section: Resources + Nav */}
         <div className="flex-none space-y-6">
           <ResourceDisplay />

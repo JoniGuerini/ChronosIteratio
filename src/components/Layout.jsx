@@ -34,16 +34,16 @@ const HeaderResourceDisplay = () => {
     const productionPerSecond = calculateProduction();
 
     return (
-        <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none flex items-center gap-6">
+        <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none flex items-center gap-2 md:gap-6 w-[calc(100%-20px)] md:w-auto justify-center">
             {/* Main Integer Display (Iterons) */}
-            <div className="flex items-center gap-3">
-                <h1 className="text-4xl font-extrabold tracking-tight text-foreground drop-shadow-md font-mono">
+            <div className="flex items-center gap-1.5 md:gap-3">
+                <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-foreground drop-shadow-md font-mono">
                     {formatNumber(gameState.iterons, { growthRate: productionPerSecond })}
                 </h1>
 
                 {/* Velocity / Rate Display */}
                 <div className="flex flex-col items-start leading-none opacity-80">
-                    <div className="text-sm font-bold text-primary">
+                    <div className="text-[11px] md:text-sm font-bold text-primary">
                         {(() => {
                             // Safely get period, default to 10 for Gen 0 (Iterons) if missing
                             const rawPeriod = (game.getBasePeriod && game.getBasePeriod(0)) || 10;
@@ -54,14 +54,14 @@ const HeaderResourceDisplay = () => {
                             return period > 1 ? (
                                 <>
                                     +{formatNumber(yieldPerCycle)}
-                                    <span className="text-xs font-normal opacity-70"> / {formatTime(period)}</span>
+                                    <span className="text-[9px] md:text-xs font-normal opacity-70"> / {formatTime(period)}</span>
                                 </>
                             ) : (
                                 <>+{formatNumber(productionPerSecond)}/s</>
                             );
                         })()}
                     </div>
-                    <div className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">
+                    <div className="text-[9px] md:text-[10px] text-muted-foreground font-medium uppercase tracking-widest">
                         Iterons
                     </div>
                 </div>
@@ -69,12 +69,12 @@ const HeaderResourceDisplay = () => {
 
             {/* Secondary Display (Insights) */}
             {(gameState.insight.gt(0) || gameState.generators[0].amount.gte(10)) && (
-                <div className="flex items-center gap-2 border-l border-border/30 pl-6">
+                <div className="flex items-center gap-1 md:gap-2 border-l border-border/30 pl-2 md:pl-6">
                     <div className="flex flex-col items-end leading-none">
-                        <span className="text-xl font-bold text-purple-400 font-mono">
+                        <span className="text-base md:text-xl font-bold text-purple-400 font-mono">
                             {formatNumber(gameState.insight)}
                         </span>
-                        <span className="text-[9px] text-purple-400 font-bold uppercase tracking-widest">
+                        <span className="text-[8px] md:text-[9px] text-purple-400 font-bold uppercase tracking-widest">
                             Insights
                         </span>
                     </div>
@@ -83,12 +83,12 @@ const HeaderResourceDisplay = () => {
 
             {/* Talent Resources (Focus & Flux) */}
             {(gameState.focus?.gt(0) || gameState.activeTime > 0) && (
-                <div className="flex items-center gap-2 border-l border-border/30 pl-6">
+                <div className="flex items-center gap-1 md:gap-2 border-l border-border/30 pl-2 md:pl-6">
                     <div className="flex flex-col items-end leading-none">
-                        <span className="text-xl font-bold text-blue-400 font-mono">
+                        <span className="text-base md:text-xl font-bold text-blue-400 font-mono">
                             {formatNumber(gameState.focus || 0)}
                         </span>
-                        <span className="text-[9px] text-blue-400 font-bold uppercase tracking-widest leading-none">
+                        <span className="text-[8px] md:text-[9px] text-blue-400 font-bold uppercase tracking-widest leading-none">
                             Focus
                         </span>
                     </div>
@@ -96,12 +96,12 @@ const HeaderResourceDisplay = () => {
             )}
 
             {gameState.flux?.gt(0) && (
-                <div className="flex items-center gap-2 border-l border-border/30 pl-6">
+                <div className="flex items-center gap-1 md:gap-2 border-l border-border/30 pl-2 md:pl-6">
                     <div className="flex flex-col items-end leading-none">
-                        <span className="text-xl font-bold text-amber-500 font-mono">
+                        <span className="text-base md:text-xl font-bold text-amber-500 font-mono">
                             {formatNumber(gameState.flux || 0)}
                         </span>
-                        <span className="text-[9px] text-amber-500 font-bold uppercase tracking-widest leading-none">
+                        <span className="text-[8px] md:text-[9px] text-amber-500 font-bold uppercase tracking-widest leading-none">
                             Flux
                         </span>
                     </div>
@@ -115,9 +115,9 @@ const Layout = ({ children }) => {
     return (
         <div className="h-screen w-screen bg-background text-foreground font-sans flex flex-col relative overflow-hidden">
             {/* Header - Fixed */}
-            <header className="flex-none w-full px-8 py-4 flex justify-between items-center z-50 border-b border-border/50 bg-background/80 backdrop-blur-md">
+            <header className="flex-none w-full px-4 md:px-8 py-3 md:py-4 flex justify-between items-center z-50 border-b border-border/50 bg-background/80 backdrop-blur-md">
                 <div className="text-left z-10">
-                    <h1 className="text-xl font-extrabold tracking-tight text-primary select-none">
+                    <h1 className="text-lg md:text-xl font-extrabold tracking-tight text-primary select-none hidden sm:block">
                         Chronos Iteratio
                     </h1>
                 </div>
