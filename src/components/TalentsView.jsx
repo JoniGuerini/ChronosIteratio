@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatNumber } from '../utils/formatUtils';
 import * as Icons from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, useMotionValue, useTransform } from 'framer-motion';
 import {
     Tooltip,
     TooltipContent,
@@ -209,38 +209,45 @@ const HeaderStats = ({ type, balance, activeTime, nextPointTime }) => {
 const TalentsView = () => {
     const { gameState, buyTalent, respecTalents } = useGame();
     const scrollContainerRef = useRef(null);
+    const [isReady, setIsReady] = React.useState(false);
+
     const focusLevel = gameState.talents['focus_mastery'] || 0;
     const focusInterval = 60 - (focusLevel * 5);
-    const [dragConstraints, setDragConstraints] = React.useState({ left: 0, right: 0, top: 0, bottom: 0 });
-    const dragControls = useRef({ x: 0, y: 0 });
 
-    // Calculate constraints based on window/container size
+    const x = useMotionValue(0);
+    const y = useMotionValue(0);
+    const [dragConstraints, setDragConstraints] = React.useState({ left: 0, right: 0, top: 0, bottom: 0 });
+
+    // Initial setup with a slight delay to ensure accurate DOM measurements
     useEffect(() => {
-        const updateConstraints = () => {
+        const setupView = () => {
             if (scrollContainerRef.current) {
                 const { clientWidth, clientHeight } = scrollContainerRef.current;
-                setDragConstraints({
-                    left: -(CANVAS_WIDTH - clientWidth),
-                    right: 100, // Small buffer
-                    top: -(CANVAS_HEIGHT - clientHeight),
-                    bottom: 100 // Small buffer
-                });
+
+                // Centering math
+                const initX = -(CENTER_X - clientWidth / 2);
+                const initY = -(CANVAS_HEIGHT - clientHeight); // Bottom
+
+                x.set(initX);
+                y.set(initY);
+                setIsReady(true);
             }
         };
 
-        updateConstraints();
-        window.addEventListener('resize', updateConstraints);
-        return () => window.removeEventListener('resize', updateConstraints);
-    }, []);
+        const timer = setTimeout(setupView, 100);
 
-    // Initial position: center horizontally and show bottom vertically
-    const initialX = useMemo(() => {
-        if (typeof window === 'undefined') return 0;
-        const containerWidth = window.innerWidth; // Approximate
-        return -(CENTER_X - containerWidth / 2);
-    }, []);
+        const handleResize = () => {
+            // We don't necessarily want to force centering on every resize
+            // but we could update constraints if we were using the object method.
+            // Since we'll use the ref method, we don't need to do much here.
+        };
 
-    const initialY = -(CANVAS_HEIGHT - 600); // Approximate bottom view
+        window.addEventListener('resize', handleResize);
+        return () => {
+            clearTimeout(timer);
+            window.removeEventListener('resize', handleResize);
+        };
+    }, [x, y]);
 
     // Tree Rendering Helpers
     const getCoords = (talent) => ({
@@ -256,57 +263,40 @@ const TalentsView = () => {
     const originCoords = { x: CENTER_X, y: START_Y };
 
     // --- MEMOIZED RENDER DATA ---
-    // We pre-calculate all the derived data for the tree to avoid doing it
-    // on every render cycle. This drastically improves performance during ticks.
     const treeData = useMemo(() => {
-        // Prepare nodes with their specific states
         const nodes = TALENT_DATA.map(talent => {
             const level = gameState.talents[talent.id] || 0;
             const isMaxed = level >= talent.maxLevel;
             const currency = talent.path;
             const canAfford = !isMaxed && gameState[currency].gte(talent.getCost(level));
 
-            // Prerequisite check
             const edgesToNode = TALENT_TREE_EDGES.filter(e => e.to === talent.id);
             const isRoot = edgesToNode.some(e => e.from === null);
             const isPurchasable = isRoot || edgesToNode.some(e => (gameState.talents[e.from] || 0) > 0);
 
-            return {
-                talent,
-                level,
-                isPurchasable,
-                canAfford
-            };
+            return { talent, level, isPurchasable, canAfford };
         });
 
-        // Prepare edges with their active states
         const edges = TALENT_TREE_EDGES.map((edge, i) => {
             const start = getCoordsById(edge.from);
             const end = getCoordsById(edge.to);
             const color = getColorById(edge.to);
             const isActive = edge.from === null || (gameState.talents[edge.from] || 0) > 0;
 
-            return {
-                key: i,
-                from: edge.from,
-                start,
-                end,
-                color,
-                isActive
-            };
+            return { key: i, from: edge.from, start, end, color, isActive };
         });
 
         return { nodes, edges };
-    }, [gameState.talents, gameState.focus, gameState.flux]); // Only re-calc when relevant state changes
+    }, [gameState.talents, gameState.focus, gameState.flux]);
 
     return (
-        <div className="h-full w-full flex flex-col relative overflow-hidden">
+        <div className="h-full w-full flex flex-col relative overflow-hidden bg-zinc-950">
             {/* Header */}
-            <div className="flex-none p-6 pb-2 flex justify-between items-start z-10 bg-gradient-to-b from-background to-transparent pointer-events-none">
+            <div className="flex-none p-6 pb-2 flex justify-between items-start z-10 bg-gradient-to-b from-zinc-950 to-transparent pointer-events-none">
                 <div className="pointer-events-auto flex items-center gap-4">
                     <div>
-                        <h2 className="text-2xl font-bold tracking-tight">Talents</h2>
-                        <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest mt-1">Hover for details • Click to upgrade</p>
+                        <h2 className="text-2xl font-bold tracking-tight text-white">Talents</h2>
+                        <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest mt-1">Drag to pan • Click to upgrade</p>
                     </div>
                     <Button
                         variant="ghost"
@@ -332,60 +322,65 @@ const TalentsView = () => {
                 </div>
             </div>
 
+            {/* Viewport */}
             <div
                 ref={scrollContainerRef}
-                className="flex-1 relative overflow-hidden p-0 cursor-grab active:cursor-grabbing touch-none"
+                className="flex-1 relative overflow-hidden cursor-grab active:cursor-grabbing touch-none select-none"
             >
+                {/* Draggable Canvas (Only renders when ready to prevent jumping) */}
                 <motion.div
                     drag
-                    dragConstraints={dragConstraints}
-                    dragElastic={0.05}
+                    dragConstraints={scrollContainerRef}
                     dragMomentum={true}
-                    initial={{ x: initialX, y: initialY }}
-                    className="w-fit h-fit"
+                    dragElastic={0}
+                    style={{ x, y }}
+                    className="absolute"
                 >
-                    <svg
-                        width={CANVAS_WIDTH}
-                        height={CANVAS_HEIGHT}
-                        viewBox={`0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}`}
-                        className="overflow-visible pointer-events-none"
-                    >
-                        {/* --- BACKGROUND LINES --- */}
-                        {treeData.edges.map(edge => (
-                            edge.from === null ? (
-                                <line
-                                    key={edge.key}
-                                    x1={edge.start.x} y1={edge.start.y} x2={edge.end.x} y2={edge.end.y}
-                                    className={`transition-opacity duration-700 ${edge.color === 'blue' ? 'stroke-blue-500/40' : 'stroke-amber-500/40'} stroke-2`}
-                                />
-                            ) : (
-                                <ConnectionLine
-                                    key={edge.key}
-                                    start={edge.start}
-                                    end={edge.end}
-                                    color={edge.color}
-                                    isActive={edge.isActive}
-                                />
-                            )
-                        ))}
+                    <div style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}>
+                        <svg
+                            width={CANVAS_WIDTH}
+                            height={CANVAS_HEIGHT}
+                            viewBox={`0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}`}
+                            className="overflow-visible pointer-events-none"
+                        >
+                            {/* --- CONNECTION LINES --- */}
+                            {treeData.edges.map(edge => (
+                                edge.from === null ? (
+                                    <line
+                                        key={edge.key}
+                                        x1={edge.start.x} y1={edge.start.y} x2={edge.end.x} y2={edge.end.y}
+                                        className={`transition-opacity duration-700 ${edge.color === 'blue' ? 'stroke-blue-500/40' : 'stroke-amber-500/40'} stroke-2`}
+                                    />
+                                ) : (
+                                    <ConnectionLine
+                                        key={edge.key}
+                                        start={edge.start}
+                                        end={edge.end}
+                                        color={edge.color}
+                                        isActive={edge.isActive}
+                                    />
+                                )
+                            ))}
 
-                        {/* --- INTERACTIVE NODES --- */}
-                        {/* Origin Node */}
-                        <circle cx={originCoords.x} cy={originCoords.y} r={10} className="fill-white animate-pulse" />
+                            {/* --- ROOT POINT --- */}
+                            <circle cx={originCoords.x} cy={originCoords.y} r={10} className="fill-white animate-pulse" />
 
-                        {treeData.nodes.map(node => (
-                            <g key={node.talent.id} className="pointer-events-auto">
-                                <TalentNode
-                                    talent={node.talent}
-                                    level={node.level}
-                                    isPurchasable={node.isPurchasable}
-                                    canAfford={node.canAfford}
-                                    buyTalent={buyTalent}
-                                />
-                            </g>
-                        ))}
-                    </svg>
+                            {/* --- TALENT NODES --- */}
+                            {treeData.nodes.map(node => (
+                                <g key={node.talent.id} className="pointer-events-auto">
+                                    <TalentNode
+                                        talent={node.talent}
+                                        level={node.level}
+                                        isPurchasable={node.isPurchasable}
+                                        canAfford={node.canAfford}
+                                        buyTalent={buyTalent}
+                                    />
+                                </g>
+                            ))}
+                        </svg>
+                    </div>
                 </motion.div>
+                )}
             </div>
         </div>
     );
