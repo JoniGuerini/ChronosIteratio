@@ -81,7 +81,7 @@ const GeneratorRow = ({
         <Card className="mb-4 rounded-xl border bg-card text-card-foreground shadow-sm hover:bg-accent/50 transition-all">
             <CardContent className="p-0 flex flex-col">
                 {/* Main Content Area */}
-                <div className="p-3 md:p-4 flex flex-col lg:grid lg:grid-cols-12 gap-3 lg:gap-2 items-center">
+                <div className="p-3 md:p-4 flex flex-col lg:grid lg:grid-cols-12 gap-3 lg:gap-4 items-center">
                     {/* 1. Name - STATIC */}
                     <div className="w-full lg:col-span-2 flex items-center justify-start">
                         {useMemo(() => (
@@ -89,142 +89,135 @@ const GeneratorRow = ({
                         ), [generator.id])}
                     </div>
 
-                    {/* 2. Production Section & 3. Stats Section - Grouped for mobile */}
-                    <div className="w-full lg:col-span-7 flex flex-col md:flex-row lg:grid lg:grid-cols-7 gap-4 md:gap-6 lg:gap-2 items-center">
-                        {/* Production (mobile: full, md: half, lg: 3 cols) */}
-                        <div className="w-full md:w-1/2 lg:col-span-3 flex flex-col justify-center items-center py-1 px-2 border-b md:border-b-0 md:border-r border-border/20 lg:border-r-0 pb-3 md:pb-0">
-                            <TooltipProvider>
-                                <Tooltip delayDuration={200}>
-                                    <TooltipTrigger asChild>
-                                        <div className="flex flex-col items-center cursor-help group">
-                                            <div className="text-xs md:text-sm font-medium text-foreground flex flex-wrap gap-1 justify-center group-hover:text-primary transition-colors">
-                                                <span>
+                    {/* 2. Production Section */}
+                    <div className="w-full lg:col-span-3 flex flex-col justify-center items-center py-1 lg:border-r border-border/10">
+                        <TooltipProvider>
+                            <Tooltip delayDuration={200}>
+                                <TooltipTrigger asChild>
+                                    <div className="flex flex-col items-center cursor-help group">
+                                        <div className="text-xs md:text-sm font-medium text-foreground flex flex-wrap gap-1 justify-center group-hover:text-primary transition-colors">
+                                            <span>
+                                                {basePeriod === 1
+                                                    ? formatNumber(productionPerSecond)
+                                                    : formatNumber(itemsPerBatch)
+                                                }
+                                            </span>
+                                            <span className="text-muted-foreground">
+                                                {basePeriod === 1 ? "/s" : ` / ${formatTime(basePeriod)}`}
+                                            </span>
+                                            <span className="text-primary/80 text-[10px] md:text-xs ml-1">
+                                                {generator.id === 0 ? "Iterons" : `Gen ${generator.id}`}
+                                            </span>
+                                        </div>
+
+                                        {/* Micro Progress Bar */}
+                                        {basePeriod > 1 && (
+                                            <div className="w-24 md:w-32 h-0.5 bg-secondary mt-1 mb-0.5 rounded-full overflow-hidden">
+                                                <div
+                                                    className="h-full bg-primary"
+                                                    style={{ width: `${Math.min(100, (generator.cycleProgress || 0) / basePeriod * 100)}%` }}
+                                                />
+                                            </div>
+                                        )}
+
+                                        {useMemo(() => (
+                                            <span className="text-[9px] md:text-[10px] text-muted-foreground uppercase tracking-wider group-hover:text-foreground/80 transition-colors">Production</span>
+                                        ), [])}
+                                    </div>
+                                </TooltipTrigger>
+                                <TooltipContent side="bottom" className="p-4 bg-popover/95 backdrop-blur-sm border-primary/20 shadow-xl">
+                                    <div className="flex flex-col gap-2 min-w-[180px]">
+                                        {useMemo(() => (
+                                            <div className="flex flex-col gap-0.5 pb-2 border-b border-border/50">
+                                                <span className="text-xs font-bold text-primary uppercase tracking-wider">Production Breakdown</span>
+                                                <span className="text-[10px] text-muted-foreground">Detailed calculation for Generator {generator.id + 1}</span>
+                                            </div>
+                                        ), [generator.id])}
+
+                                        <div className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 text-xs">
+                                            {useMemo(() => (
+                                                <span className="text-muted-foreground">Owned</span>
+                                            ), [])}
+                                            <span className="text-foreground font-mono font-bold">{formatNumber(generator.amount, { precision: 0 })}</span>
+
+                                            {useMemo(() => (
+                                                <span className="text-muted-foreground">Base Rate</span>
+                                            ), [])}
+                                            <span className="text-foreground font-mono">
+                                                {basePeriod === 1
+                                                    ? `${formatNumber(generator.multiplier)} / s`
+                                                    : `1 / ${formatTime(basePeriod)}`}
+                                            </span>
+
+                                            {useMemo(() => (
+                                                <span className="text-muted-foreground">Milestone</span>
+                                            ), [])}
+                                            <span className="text-purple-400 font-mono font-bold">+{generator.id + 1} Insight</span>
+                                        </div>
+
+                                        <div className="h-px bg-border/50 my-1"></div>
+
+                                        <div className="grid grid-cols-[1fr_auto] gap-x-4 items-center">
+                                            {useMemo(() => (
+                                                <span className="text-xs font-bold text-foreground">
+                                                    {basePeriod === 1 ? "Total Output" : "Cycle Yield"}
+                                                </span>
+                                            ), [basePeriod])}
+                                            <div className="flex flex-col items-end leading-none">
+                                                <span className="text-sm font-bold text-primary">
                                                     {basePeriod === 1
                                                         ? formatNumber(productionPerSecond)
-                                                        : formatNumber(itemsPerBatch)
+                                                        : formatNumber(generator.amount.times(generator.multiplier))
                                                     }
-                                                </span>
-                                                <span className="text-muted-foreground">
-                                                    {basePeriod === 1 ? "/s" : ` / ${formatTime(basePeriod)}`}
-                                                </span>
-                                                <span className="text-primary/80 text-[10px] md:text-xs ml-1">
-                                                    {generator.id === 0 ? "Iterons" : `Gen ${generator.id}`}
-                                                </span>
-                                            </div>
-
-                                            {/* Micro Progress Bar */}
-                                            {basePeriod > 1 && (
-                                                <div className="w-24 md:w-32 h-0.5 bg-secondary mt-1 mb-0.5 rounded-full overflow-hidden">
-                                                    <div
-                                                        className="h-full bg-primary"
-                                                        style={{ width: `${Math.min(100, (generator.cycleProgress || 0) / basePeriod * 100)}%` }}
-                                                    />
-                                                </div>
-                                            )}
-
-                                            {useMemo(() => (
-                                                <span className="text-[9px] md:text-[10px] text-muted-foreground uppercase tracking-wider group-hover:text-foreground/80 transition-colors">Production</span>
-                                            ), [])}
-                                        </div>
-                                    </TooltipTrigger>
-                                    <TooltipContent side="bottom" className="p-4 bg-popover/95 backdrop-blur-sm border-primary/20 shadow-xl">
-                                        <div className="flex flex-col gap-2 min-w-[180px]">
-                                            {useMemo(() => (
-                                                <div className="flex flex-col gap-0.5 pb-2 border-b border-border/50">
-                                                    <span className="text-xs font-bold text-primary uppercase tracking-wider">Production Breakdown</span>
-                                                    <span className="text-[10px] text-muted-foreground">Detailed calculation for Generator {generator.id + 1}</span>
-                                                </div>
-                                            ), [generator.id])}
-
-                                            <div className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 text-xs">
-                                                {useMemo(() => (
-                                                    <span className="text-muted-foreground">Owned</span>
-                                                ), [])}
-                                                <span className="text-foreground font-mono font-bold">{formatNumber(generator.amount, { precision: 0 })}</span>
-
-                                                {useMemo(() => (
-                                                    <span className="text-muted-foreground">Base Rate</span>
-                                                ), [])}
-                                                <span className="text-foreground font-mono">
-                                                    {basePeriod === 1
-                                                        ? `${formatNumber(generator.multiplier)} / s`
-                                                        : `1 / ${formatTime(basePeriod)}`}
-                                                </span>
-
-                                                {useMemo(() => (
-                                                    <span className="text-muted-foreground">Milestone</span>
-                                                ), [])}
-                                                <span className="text-purple-400 font-mono font-bold">+{generator.id + 1} Insight</span>
-                                            </div>
-
-                                            <div className="h-px bg-border/50 my-1"></div>
-
-                                            <div className="grid grid-cols-[1fr_auto] gap-x-4 items-center">
-                                                {useMemo(() => (
-                                                    <span className="text-xs font-bold text-foreground">
-                                                        {basePeriod === 1 ? "Total Output" : "Cycle Yield"}
+                                                    <span className="text-[10px] font-normal text-muted-foreground ml-1">
+                                                        {basePeriod === 1 ? "/s" : ` / ${formatTime(basePeriod)}`}
                                                     </span>
-                                                ), [basePeriod])}
-                                                <div className="flex flex-col items-end leading-none">
-                                                    <span className="text-sm font-bold text-primary">
-                                                        {basePeriod === 1
-                                                            ? formatNumber(productionPerSecond)
-                                                            : formatNumber(generator.amount.times(generator.multiplier))
-                                                        }
-                                                        <span className="text-[10px] font-normal text-muted-foreground ml-1">
-                                                            {basePeriod === 1 ? "/s" : ` / ${formatTime(basePeriod)}`}
-                                                        </span>
-                                                    </span>
-                                                </div>
+                                                </span>
                                             </div>
                                         </div>
-
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-                        </div>
-
-                        {/* Stats (Level, Owned, Next) (mobile: full, md: half, lg: 4 cols) */}
-                        <div className="w-full md:w-1/2 lg:col-span-4 grid grid-cols-3 gap-2 text-center items-center">
-                            {/* Level */}
-                            <div className="flex flex-col items-center justify-center">
-                                <Badge variant="secondary" className="text-[10px] md:text-xs px-1.5 md:px-2 py-0 h-5 md:h-6 bg-primary/10 text-primary border-primary/20 pointer-events-none mb-1">
-                                    Lvl {level}
-                                </Badge>
-                                {useMemo(() => (
-                                    <span className="text-[9px] md:text-[10px] text-muted-foreground uppercase tracking-wider">Level</span>
-                                ), [])}
-                            </div>
-
-                            {/* Owned */}
-                            <div className="flex flex-col items-center justify-center">
-                                <span className="text-foreground font-mono font-bold text-sm md:text-base">{formatNumber(generator.amount)}</span>
-                                {useMemo(() => (
-                                    <span className="text-[9px] md:text-[10px] text-muted-foreground uppercase tracking-wider">Owned</span>
-                                ), [])}
-                            </div>
-
-                            {/* Next Milestone */}
-                            <div className="flex flex-col items-center justify-center">
-                                <span className="font-mono text-foreground/80 text-[10px] md:text-xs">
-                                    {formatNumber(Decimal.min(currentVal, nextVal).sub(nextMilestone.prev || 0))}<span className="opacity-50 mx-0.5">/</span>{formatNumber(nextVal.sub(nextMilestone.prev || 0))}
-                                </span>
-                                {useMemo(() => (
-                                    <div className="text-[9px] md:text-[10px] text-muted-foreground uppercase tracking-wider flex items-center gap-1 justify-center">
-                                        Next: <span className="text-purple-400 font-bold">+{generator.id + 1}</span>
                                     </div>
-                                ), [generator.id])}
-                            </div>
-                        </div>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
                     </div>
 
-                    {/* Right: Action Button - Full width on small mobile, compact on tablet/desktop */}
-                    <div className="w-full lg:col-span-3 flex justify-center lg:justify-end mt-2 lg:mt-0">
+                    {/* 3. Level Block */}
+                    <div className="w-full lg:col-span-1 flex flex-col items-center justify-center">
+                        <Badge variant="secondary" className="text-[10px] md:text-xs px-1.5 md:px-2 py-0 h-5 md:h-6 bg-primary/10 text-primary border-primary/20 pointer-events-none mb-1">
+                            Lvl {level}
+                        </Badge>
+                        {useMemo(() => (
+                            <span className="text-[9px] md:text-[10px] text-muted-foreground uppercase tracking-wider">Level</span>
+                        ), [])}
+                    </div>
+
+                    {/* 4. Owned Block */}
+                    <div className="w-full lg:col-span-2 flex flex-col items-center justify-center">
+                        <span className="text-foreground font-mono font-bold text-sm md:text-base">{formatNumber(generator.amount)}</span>
+                        {useMemo(() => (
+                            <span className="text-[9px] md:text-[10px] text-muted-foreground uppercase tracking-wider">Owned</span>
+                        ), [])}
+                    </div>
+
+                    {/* 5. Next Milestone Block */}
+                    <div className="w-full lg:col-span-2 flex flex-col items-center justify-center">
+                        <span className="font-mono text-foreground/80 text-[10px] md:text-xs whitespace-nowrap">
+                            {formatNumber(Decimal.min(currentVal, nextVal).sub(nextMilestone.prev || 0))}<span className="opacity-50 mx-0.5">/</span>{formatNumber(nextVal.sub(nextMilestone.prev || 0))}
+                        </span>
+                        {useMemo(() => (
+                            <div className="text-[9px] md:text-[10px] text-muted-foreground uppercase tracking-wider flex items-center gap-1 justify-center whitespace-nowrap">
+                                Next: <span className="text-purple-400 font-bold">+{generator.id + 1}</span>
+                            </div>
+                        ), [generator.id])}
+                    </div>
+
+                    {/* 6. Action Button Block */}
+                    <div className="w-full lg:col-span-2 flex justify-center lg:justify-end">
                         <Button
                             onClick={() => buyGenerator(generator.id)}
                             disabled={!canAfford}
                             variant={canAfford ? "default" : "secondary"}
-                            className={`w-full max-w-[280px] lg:max-w-[160px] h-auto py-2.5 md:py-2 px-4 flex flex-row lg:flex-col items-center justify-center gap-3 lg:gap-0 ${!canAfford && "opacity-50"
+                            className={`w-full max-w-[280px] h-auto py-2.5 md:py-2 px-4 flex flex-row lg:flex-col items-center justify-center gap-3 lg:gap-0 ${!canAfford && "opacity-50"
                                 }`}
                         >
                             {useMemo(() => (
