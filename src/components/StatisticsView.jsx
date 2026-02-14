@@ -41,7 +41,6 @@ const StatisticsView = () => {
                     <BarChart3 size={24} />
                 </div>
                 <div>
-                    <h2 className="text-2xl font-bold tracking-tight">Statistics</h2>
                     <p className="text-muted-foreground text-sm">
                         Detailed tracking of your chronological progress.
                     </p>

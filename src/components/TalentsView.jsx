@@ -103,7 +103,7 @@ const TalentNode = memo(({
                         </text>
                     </motion.g>
                 </TooltipTrigger>
-                <TooltipContent side="right" sideOffset={20} className="bg-zinc-950/95 border-zinc-800 p-4 max-w-[300px] backdrop-blur-md shadow-2xl z-50">
+                <TooltipContent side="right" sideOffset={20} className="bg-popover border-border p-4 max-w-[300px] backdrop-blur-md shadow-xl z-50">
                     <div className="flex flex-col gap-2">
                         <div className="flex justify-between items-start">
                             <h4 className={`font-bold text-sm ${textColor}`}>{talent.name}</h4>
@@ -113,19 +113,19 @@ const TalentNode = memo(({
                                         Locked
                                     </Badge>
                                 )}
-                                <Badge variant="outline" className="text-[9px] h-5 border-zinc-700 bg-zinc-900">
+                                <Badge variant="outline" className="text-[9px] h-5 border-border bg-muted/50">
                                     Lvl {level} <span className="text-zinc-600 px-1">/</span> {talent.maxLevel}
                                 </Badge>
                             </div>
                         </div>
                         <p className="text-xs text-muted-foreground leading-relaxed">{talent.description}</p>
 
-                        <Separator className="bg-white/10 my-2" />
+                        <Separator className="bg-border/50 my-2" />
 
                         <div className="grid grid-cols-1 gap-2 text-xs">
                             <div className="flex justify-between">
                                 <span className="text-[10px] uppercase text-muted-foreground font-bold tracking-wider">Current Effect</span>
-                                <span className="font-mono text-zinc-300 font-bold">{talent.getEffectDisplay(level)}</span>
+                                <span className="font-mono text-foreground font-bold">{talent.getEffectDisplay(level)}</span>
                             </div>
                             {!isMaxed && (
                                 <div className="flex justify-between">
@@ -136,14 +136,14 @@ const TalentNode = memo(({
                         </div>
 
                         {!isMaxed ? (
-                            <div className="mt-3 bg-zinc-900 rounded p-2 flex justify-between items-center border border-white/5">
+                            <div className="mt-3 bg-muted/30 rounded p-2 flex justify-between items-center border border-border/50">
                                 <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Upgrade Cost</span>
-                                <span className={`font-mono font-bold ${canAfford ? 'text-white' : 'text-red-400'}`}>
+                                <span className={`font-mono font-bold ${canAfford ? 'text-foreground' : 'text-red-400'}`}>
                                     {formatNumber(cost)} {isFocus ? 'Energy' : 'Essence'}
                                 </span>
                             </div>
                         ) : (
-                            <div className="mt-3 bg-zinc-900 rounded p-2 text-center border border-emerald-500/20">
+                            <div className="mt-3 bg-muted/30 rounded p-2 text-center border border-emerald-500/20">
                                 <span className="text-[10px] uppercase font-bold text-emerald-500 tracking-wider">Maxed Out</span>
                             </div>
                         )}
@@ -180,16 +180,16 @@ const HeaderStats = ({ type, balance, activeTime, nextPointTime }) => {
     const isFocus = type === TALENT_CURRENCIES.ACTIVE;
     const color = isFocus ? 'text-violet-400' : 'text-orange-400';
     const bg = isFocus ? 'bg-violet-500' : 'bg-orange-500';
-    const label = isFocus ? 'Active Energy' : 'Stability Essence';
+    const label = isFocus ? 'Energy' : 'Essence';
 
     return (
-        <div className="flex flex-col gap-2 min-w-[200px]">
-            <div className="flex justify-between items-baseline">
-                <span className={`text-[10px] font-black uppercase tracking-widest ${color}`}>{label}</span>
-                <span className="text-xl font-bold font-mono">{formatNumber(balance)}</span>
+        <div className="flex flex-col gap-1 min-w-[120px] bg-card/30 p-3 rounded-xl border border-border/50">
+            <div className="flex justify-between items-baseline gap-4">
+                <span className={`text-[9px] font-black uppercase tracking-widest ${color}`}>{label}</span>
+                <span className="text-lg font-bold font-mono">{formatNumber(balance)}</span>
             </div>
             {isFocus ? (
-                <div className="h-1 w-full bg-zinc-900 rounded-full overflow-hidden">
+                <div className="h-1 w-full bg-muted/50 rounded-full overflow-hidden">
                     <div
                         className={`h-full ${bg}`}
                         style={{
@@ -199,8 +199,9 @@ const HeaderStats = ({ type, balance, activeTime, nextPointTime }) => {
                     />
                 </div>
             ) : (
-                <div className="flex items-center gap-2 text-[10px] uppercase text-orange-500/50 font-bold tracking-widest">
-                    <span className="animate-pulse">●</span> Offline Stability
+                <div className="text-[8px] uppercase text-orange-500/50 font-bold tracking-[0.2em] flex items-center gap-1.5">
+                    <Icons.TrendingUp size={10} className="animate-pulse" />
+                    Offline Sync
                 </div>
             )}
         </div>
@@ -296,7 +297,6 @@ const TalentsView = () => {
             <div className="flex-none p-6 pb-2 flex justify-between items-start z-10 bg-gradient-to-b from-zinc-950 to-transparent pointer-events-none">
                 <div className="pointer-events-auto flex items-center gap-4">
                     <div>
-                        <h2 className="text-2xl font-bold tracking-tight text-white">Talents</h2>
                         <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest mt-1">Drag to pan • Click to upgrade</p>
                     </div>
                     <Button

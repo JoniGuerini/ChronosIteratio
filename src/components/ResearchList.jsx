@@ -27,7 +27,7 @@ const ResearchCard = ({ research, gameState, buyResearch }) => {
     }
 
     return (
-        <Card className={`relative overflow-hidden transition-all duration-300 ${isMaxed ? 'bg-muted/10 border-border/50 opacity-70' : 'bg-card border-primary/20 hover:border-primary/50 hover:shadow-md hover:shadow-primary/5'}`}>
+        <Card className={`relative overflow-hidden transition-all duration-300 ${isMaxed ? 'bg-muted/30 border-border opacity-70' : 'bg-card border-border hover:bg-accent/50 hover:border-border/80 shadow-sm'}`}>
             <div className="p-5 flex flex-col h-full justify-between gap-4">
                 <div>
                     <div className="flex justify-between items-start mb-2">
@@ -42,11 +42,11 @@ const ResearchCard = ({ research, gameState, buyResearch }) => {
 
                         <div className="flex flex-col items-end gap-1">
                             {isMaxed && (
-                                <span className="text-[9px] bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded border border-zinc-700 uppercase font-bold tracking-wider mb-1">
+                                <Badge variant="secondary" className="text-[9px] bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded border border-zinc-700 uppercase font-bold tracking-wider mb-1">
                                     MAXED
-                                </span>
+                                </Badge>
                             )}
-                            <span className="text-xs font-mono text-muted-foreground bg-zinc-900/50 px-2 py-0.5 rounded border border-white/5">
+                            <span className="text-xs font-mono text-muted-foreground bg-muted/50 px-2 py-0.5 rounded border border-border/50">
                                 Rank {currentLevel} <span className="text-zinc-600">/</span> {research.maxLevel}
                             </span>
                         </div>
@@ -58,12 +58,12 @@ const ResearchCard = ({ research, gameState, buyResearch }) => {
                         </p>
 
                         {isMaxed ? (
-                            <div className="text-xs font-mono bg-primary/10 text-primary border border-primary/20 p-2 rounded flex items-center justify-between">
+                            <div className="text-xs font-mono bg-primary/5 text-primary/80 border border-primary/10 p-2 rounded flex items-center justify-between">
                                 <span className="uppercase tracking-wider font-bold text-[10px]">Effect</span>
                                 <span className="font-bold">{research.getEffectDisplay(currentLevel)}</span>
                             </div>
                         ) : (
-                            <div className="flex items-center justify-between text-xs font-mono bg-zinc-950/50 p-2 rounded border border-white/5">
+                            <div className="flex items-center justify-between text-xs font-mono bg-muted/30 p-2 rounded border border-border/50">
                                 <div className="flex flex-col">
                                     <span className="text-[9px] uppercase text-muted-foreground tracking-wider mb-0.5">Current</span>
                                     <span className="text-zinc-300 font-semibold">
@@ -91,16 +91,16 @@ const ResearchCard = ({ research, gameState, buyResearch }) => {
                                     {formatNumber(gameState.insight)} / {formatNumber(cost)}
                                 </span>
                             </div>
-                            <div className="h-1.5 w-full bg-zinc-900/50 rounded-full overflow-hidden border border-white/5">
+                            <div className="h-1.5 w-full bg-muted/50 rounded-full overflow-hidden border border-border/50">
                                 <div
-                                    className={`h-full transition-all duration-500 ease-out ${canAfford ? 'bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]' : 'bg-purple-500/50'}`}
+                                    className={`h-full transition-all duration-500 ease-out ${canAfford ? 'bg-purple-500' : 'bg-purple-500/30'}`}
                                     style={{ width: `${progress}%` }}
                                 />
                             </div>
                         </div>
 
                         <Button
-                            className={`w-full font-bold tracking-wide transition-all h-9 ${canAfford ? 'bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-900/20' : 'bg-muted text-muted-foreground'}`}
+                            className={`w-full font-bold tracking-wide transition-all h-9 ${canAfford ? 'bg-purple-600 hover:bg-purple-500 text-white' : 'bg-muted text-muted-foreground'}`}
                             disabled={!canAfford}
                             onClick={() => buyResearch(research.id)}
                         >
@@ -126,8 +126,6 @@ const ResearchList = () => {
 
     return (
         <div className="w-full h-full flex flex-col pb-4 text-foreground">
-            <h2 className="text-2xl font-bold mb-4 tracking-tight shrink-0">Research Lab</h2>
-
             <ScrollArea className="flex-1 w-full pr-4">
                 <div className="flex flex-col gap-10">
                     {Object.entries(groupedResearch).map(([target, items]) => (

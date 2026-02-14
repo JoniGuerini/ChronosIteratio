@@ -36,7 +36,9 @@ const INITIAL_STATE = {
     missionStats: {
         totalMilestones: 0,
         consecutiveStableTime: 0
-    }
+    },
+    experimentRank: 1,
+    experimentXP: 0
 };
 
 export const GameProvider = ({ children }) => {
@@ -100,6 +102,9 @@ export const GameProvider = ({ children }) => {
         parsed.completedMissions = parsed.completedMissions || [];
         parsed.missionStats = parsed.missionStats || { totalMilestones: 0, consecutiveStableTime: 0 };
 
+        parsed.experimentRank = parsed.experimentRank || 1;
+        parsed.experimentXP = parsed.experimentXP || 0;
+
         return parsed;
     };
 
@@ -119,6 +124,13 @@ export const GameProvider = ({ children }) => {
         // Every generator starts producing 0.01/s of the previous tier
         // Speed upgrades were removed in favor of Maintenance Logistics
         return new Decimal(0.01);
+    }, []);
+
+    const getXPRequired = useCallback((rank) => {
+        // Base is 10 XP for levels 1-10.
+        // Increases by 2 every 10 levels.
+        const tier = Math.floor((rank - 1) / 10);
+        return 10 + (tier * 2);
     }, []);
 
     const countMaxedTalents = useCallback(() => {
@@ -161,9 +173,10 @@ export const GameProvider = ({ children }) => {
 
         state.generators.forEach((gen, i) => {
             if (gen.amount.gt(0)) {
-                // Base Maintenance: 2% (0.02) of base production
+                // Base Maintenance: 2% of base production, based on current milestone rank threshold
                 const baseProd = getBaseProduction(i);
-                let cost = baseProd.times(gen.amount).times(0.02);
+                const threshold = getNextMilestone(gen.amount).prev || new Decimal(0);
+                let cost = baseProd.times(threshold).times(0.02);
 
                 // Overclock Penalty: 20x cost for this specific generator
                 const nowTs = Date.now();
@@ -212,11 +225,13 @@ export const GameProvider = ({ children }) => {
         nextState.treasuryIterons = nextState.treasuryIterons.sub(treasuryUsed);
         nextState.playtime = (nextState.playtime || 0) + effectiveTime;
 
-        // Award Stability Essence (1 per hour of stable time, or similar scale)
+        // Award Stability Essence (Disabled until Talent mechanics are finalized)
+        /*
         const harvestLevel = nextState.talents?.['essence_harvest'] || 0;
         const harvestMult = 1 + (harvestLevel * 0.15);
         const essenceGained = new Decimal(effectiveTime).div(3600).times(harvestMult);
         nextState.stabilityEssence = nextState.stabilityEssence.add(essenceGained);
+        */
 
         const gens = nextState.generators.map(g => ({ ...g }));
         const offlineLevel = nextState.talents?.['offline_refinement'] || 0;
@@ -432,7 +447,8 @@ export const GameProvider = ({ children }) => {
             }
         });
 
-        // --- TALENT: Focus Gain ---
+        // --- TALENT: Focus Gain (Disabled until Talent mechanics are finalized) ---
+        /*
         const focusLevel = currentState.talents?.['milestone_efficiency'] || 0;
         const focusInterval = 60 - (focusLevel * 5);
         if (stateRef.current.activeTime >= focusInterval) {
@@ -441,6 +457,7 @@ export const GameProvider = ({ children }) => {
             stateRef.current.activeEnergy = stateRef.current.activeEnergy.add(feedbackMult);
             stateRef.current.activeTime -= focusInterval;
         }
+        */
 
         if (shouldRender) {
             setGameState(prevState => {
@@ -504,7 +521,12 @@ export const GameProvider = ({ children }) => {
                 if (newMilestone.level > prevMilestone.level) {
                     const tierReward = new Decimal(id + 1);
                     const levelsGained = new Decimal(newMilestone.level - prevMilestone.level);
-                    let totalReward = tierReward.times(levelsGained);
+
+                    // Apply Resonance multiplier
+                    const resonanceLevel = newState.research[`gen${id + 1}_resonance`] || 0;
+                    const resonanceMultiplier = Math.pow(2, resonanceLevel);
+
+                    let totalReward = tierReward.times(levelsGained).times(resonanceMultiplier);
 
                     // Insight Yield Talent: 5% chance per level
                     const yieldLevel = newState.talents?.['insight_yield'] || 0;
@@ -696,19 +718,27 @@ export const GameProvider = ({ children }) => {
         setGameState(prev => {
             if (prev.completedMissions.includes(missionId)) return prev;
 
-            const next = {
-                ...prev,
-                completedMissions: [...prev.completedMissions, missionId]
-            };
+            const next = { ...prev };
+            next.completedMissions = [...prev.completedMissions, missionId];
 
             const reward = mission.reward;
             if (reward.type === 'insight') next.insight = next.insight.add(reward.amount);
-            if (reward.type === 'reservoir') next.treasuryIterons = next.treasuryIterons.add(reward.amount);
-            if (reward.type === 'activeEnergy') next.activeEnergy = next.activeEnergy.add(reward.amount);
+            if (reward.type === 'reservoir') next.iterons = next.iterons.add(reward.amount);
+
+            // Add XP
+            next.experimentXP += 1;
+
+            // Handle Level Up
+            let xpReq = getXPRequired(next.experimentRank);
+            while (next.experimentXP >= xpReq) {
+                next.experimentXP -= xpReq;
+                next.experimentRank += 1;
+                xpReq = getXPRequired(next.experimentRank);
+            }
 
             return next;
         });
-    }, []);
+    }, [getXPRequired]);
 
     const dismissTimeShift = useCallback(() => {
         setGameState(prev => ({ ...prev, isTimeShiftDismissed: true }));
@@ -745,7 +775,7 @@ export const GameProvider = ({ children }) => {
             getBaseProduction, buyResearch, buyTalent, respecTalents,
             dismissOfflineResults, depositInTreasury, getMaintenanceRate,
             dismissTimeShift, restoreTimeShift, toggleOverclock: activateOverclock,
-            activateOverclock, deactivateOverclock, claimMissionReward
+            activateOverclock, deactivateOverclock, claimMissionReward, getXPRequired
         }}>
             {children}
         </GameContext.Provider>

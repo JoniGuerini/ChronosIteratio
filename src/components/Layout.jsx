@@ -92,6 +92,29 @@ const HeaderResourceDisplay = () => {
                     </div>
                 </div>
             )}
+
+            {/* Stability Reservoir Remaining Time */}
+            {(gameState.treasuryIterons.gt(0) || gameState.generators.some(g => g.amount.gt(0))) && (
+                <div className="flex items-center gap-1 md:gap-2 border-l border-border/30 pl-2 md:pl-6">
+                    <div className="flex flex-col items-end leading-none">
+                        <span className={`text-base md:text-xl font-bold font-mono ${gameState.treasuryIterons.lte(0) ? 'text-red-500 animate-pulse' : 'text-emerald-400'}`}>
+                            {(() => {
+                                const maintenanceRate = game.getMaintenanceRate();
+                                const expansionLevel = gameState.talents?.['reservoir_expansion'] || 0;
+                                const expansionMult = 1 + (expansionLevel * 0.2);
+                                const timeRemaining = maintenanceRate.gt(0)
+                                    ? gameState.treasuryIterons.div(maintenanceRate).toNumber() * expansionMult
+                                    : 0;
+
+                                return maintenanceRate.gt(0) ? formatTime(Math.floor(timeRemaining)) : "∞";
+                            })()}
+                        </span>
+                        <span className="text-[8px] md:text-[9px] text-muted-foreground font-bold uppercase tracking-widest leading-none">
+                            Stability
+                        </span>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

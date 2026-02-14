@@ -15,6 +15,7 @@ import OfflineDialog from './components/OfflineDialog';
 import ChronosView from './components/ChronosView';
 import TalentsView from './components/TalentsView';
 import ExperimentsView from './components/ExperimentsView';
+import GlobalExperimentsList from './components/GlobalExperimentsList';
 
 import Decimal from 'break_eternity.js';
 import { RESEARCH_DATA } from './game/researchData';
@@ -121,15 +122,16 @@ function GameContent() {
 
   return (
     <Layout>
-      <div className="h-full w-full flex flex-col px-2 md:px-4 lg:px-8 pt-4 md:pt-6 pb-0">
-        {/* Fixed Top Section: Resources + Nav */}
-        <div className="flex-none space-y-6">
+      <div className="h-full w-full flex flex-col px-4 md:px-6 lg:px-8 pt-4 pb-0 space-y-4">
+        {/* Fixed Top Section: Resources + Experiments + Nav */}
+        <div className="flex-none space-y-4">
           <ResourceDisplay />
+          <GlobalExperimentsList />
           <GameNavigation activeView={view} setView={setView} />
         </div>
 
         {/* Scrollable Content Area */}
-        <div className="flex-1 min-h-0 mt-4 pb-4">
+        <div className="flex-1 min-h-0 pb-4">
           {view === 'generators' && (
             <div className="h-full fade-in-animation">
               <GeneratorList />

@@ -18,8 +18,6 @@ const GeneratorList = () => {
 
     return (
         <div className="w-full h-full flex flex-col pb-4">
-            <h2 className="text-2xl font-bold bg-background text-foreground mb-4 tracking-tight shrink-0">Generators</h2>
-
             <ScrollArea className="flex-1 w-full [&_[data-orientation=vertical]]:hidden">
                 <div className="space-y-4">
                     {/* Logic: Show all owned generators + the next one in the sequence */}
