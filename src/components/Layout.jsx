@@ -34,29 +34,29 @@ const HeaderResourceDisplay = () => {
     const productionPerSecond = calculateProduction();
 
     return (
-        <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none flex items-center gap-2 md:gap-6 w-[calc(100%-20px)] md:w-auto justify-center">
+        <div className="flex-1 flex items-center justify-center gap-2 md:gap-6 px-4 min-w-0">
             {/* Main Integer Display (Iterons) */}
-            <div className="flex items-center gap-1.5 md:gap-3">
-                <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-foreground drop-shadow-md font-mono">
+            <div className="flex items-center gap-1.5 md:gap-3 min-w-0 shrink-1">
+                <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight text-foreground drop-shadow-md font-mono truncate">
                     {formatNumber(gameState.iterons, { growthRate: productionPerSecond })}
                 </h1>
 
                 {/* Velocity / Rate Display */}
-                <div className="flex flex-col items-start leading-none opacity-80">
-                    <div className="text-[11px] md:text-sm font-bold text-primary">
+                <div className="flex flex-col items-start leading-none opacity-80 shrink-0">
+                    <div className="text-[10px] md:text-sm font-bold text-primary whitespace-nowrap">
                         +{formatNumber(productionPerSecond)}/s
                     </div>
-                    <div className="text-[9px] md:text-[10px] text-muted-foreground font-medium uppercase tracking-widest">
-                        Eternity Fragments
+                    <div className="text-[8px] md:text-[10px] text-muted-foreground font-medium uppercase tracking-widest whitespace-nowrap">
+                        Fragments
                     </div>
                 </div>
             </div>
 
             {/* Secondary Display (Insights) */}
             {(gameState.insight.gt(0) || gameState.generators[0].amount.gte(10)) && (
-                <div className="flex items-center gap-1 md:gap-2 border-l border-border/30 pl-2 md:pl-6">
+                <div className="flex items-center gap-1 md:gap-2 border-l border-border/30 pl-2 md:pl-4 shrink-0">
                     <div className="flex flex-col items-end leading-none">
-                        <span className="text-base md:text-xl font-bold text-purple-400 font-mono">
+                        <span className="text-sm md:text-xl font-bold text-purple-400 font-mono">
                             {formatNumber(gameState.insight)}
                         </span>
                         <span className="text-[8px] md:text-[9px] text-purple-400 font-bold uppercase tracking-widest">
@@ -68,13 +68,13 @@ const HeaderResourceDisplay = () => {
 
             {/* Talent Points Display */}
             {(gameState.talentPoints > 0 || gameState.experimentRank > 1) && (
-                <div className="flex items-center gap-1 md:gap-2 border-l border-border/30 pl-2 md:pl-6">
+                <div className="flex items-center gap-1 md:gap-2 border-l border-border/30 pl-2 md:pl-4 shrink-0">
                     <div className="flex flex-col items-end leading-none">
-                        <span className="text-base md:text-xl font-black text-emerald-400 font-mono">
+                        <span className="text-sm md:text-xl font-black text-emerald-400 font-mono">
                             {gameState.talentPoints}
                         </span>
                         <span className="text-[8px] md:text-[9px] text-emerald-400 font-bold uppercase tracking-widest leading-none">
-                            Talent Points
+                            Talents
                         </span>
                     </div>
                 </div>
@@ -82,9 +82,9 @@ const HeaderResourceDisplay = () => {
 
             {/* Stability Reservoir Remaining Time */}
             {(gameState.treasuryIterons.gt(0) || gameState.generators.some(g => g.amount.gt(0))) && (
-                <div className="flex items-center gap-1 md:gap-2 border-l border-border/30 pl-2 md:pl-6">
+                <div className="flex items-center gap-1 md:gap-2 border-l border-border/30 pl-2 md:pl-4 shrink-0">
                     <div className="flex flex-col items-end leading-none">
-                        <span className={`text-base md:text-xl font-bold font-mono ${gameState.treasuryIterons.lte(0) ? 'text-red-500 animate-pulse' : 'text-emerald-400'}`}>
+                        <span className={`text-sm md:text-xl font-bold font-mono ${gameState.treasuryIterons.lte(0) ? 'text-red-500 animate-pulse' : 'text-emerald-400'}`}>
                             {(() => {
                                 const maintenanceRate = game.getMaintenanceRate();
                                 const expansionLevel = gameState.talents?.['reservoir_expansion'] || 0;
@@ -110,19 +110,25 @@ const Layout = ({ children }) => {
     return (
         <div className="h-screen w-screen bg-background text-foreground font-sans flex flex-col relative overflow-hidden">
             {/* Header - Fixed */}
-            <header className="flex-none w-full px-4 md:px-8 py-3 md:py-4 flex justify-between items-center z-50 border-b border-border/50 bg-background/80 backdrop-blur-md">
-                <div className="text-left z-10">
-                    <h1 className="text-lg md:text-xl font-extrabold tracking-tight text-primary select-none hidden sm:block">
-                        Breaking Eternity
+            <header className="flex-none w-full px-4 md:px-8 py-2 md:py-3 flex justify-between items-center z-50 border-b border-border/50 bg-background/80 backdrop-blur-md">
+                <div className="shrink-0">
+                    <h1 className="text-base md:text-xl font-black tracking-tighter text-primary select-none hidden sm:block">
+                        CHRONOS ITERATIO
+                    </h1>
+                    <h1 className="text-lg font-black tracking-tighter text-primary select-none block sm:hidden">
+                        CI
                     </h1>
                 </div>
 
-                {/* Center Display */}
+                {/* Center Display - Now flexible */}
                 <HeaderResourceDisplay />
 
                 {/* Desktop Controls: Top Right */}
-                <div className="hidden md:flex z-10 w-[200px] justify-end items-center">
-                    <FPSCounter />
+                <div className="shrink-0 flex items-center gap-4">
+                    <div className="hidden lg:block">
+                        <FPSCounter />
+                    </div>
+                    <SaveControls />
                 </div>
             </header>
 

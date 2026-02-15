@@ -12,19 +12,7 @@ export const formatNumber = (val, options = { precision: 0, growthRate: null }) 
     // Use pt-BR locale for formatting (comma for decimals, dot for thousands)
     const locale = 'pt-BR';
 
-    // Rule 1: < 1.000 (0,00 to 999,99)
-    if (absDecimal.lt(1000)) {
-        try {
-            return decimal.toNumber().toLocaleString(locale, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
-        } catch (e) {
-            return decimal.toNumber().toFixed(2).replace('.', ',');
-        }
-    }
-
-    // Rule 2: 1.000 to 999.999 (No decimals)
+    // Rule 1: < 1.000.000 (No decimals)
     if (absDecimal.lt(1000000)) {
         return decimal.toNumber().toLocaleString(locale, {
             minimumFractionDigits: 0,
@@ -32,7 +20,7 @@ export const formatNumber = (val, options = { precision: 0, growthRate: null }) 
         });
     }
 
-    // Rule 3: >= 1.000.000 (2 decimals, with suffix)
+    // Rule 2: >= 1.000.000 (2 decimals, with suffix and space)
     const exponent = absDecimal.log10();
     const suffixIndex = Math.floor(exponent / 3);
     const divisor = Decimal.pow(10, suffixIndex * 3);

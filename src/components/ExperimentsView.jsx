@@ -73,7 +73,7 @@ const ExperimentsView = () => {
                         <span className="text-muted-foreground uppercase opacity-50 tracking-widest">
                             {canRankUp ? 'CLICK HERE TO ADVANCE SCIENTIST RANK' : 'Curiosity Growth'}
                         </span>
-                        <span className="text-primary/90">{experimentXP} / {xpReq} XP</span>
+                        <span className="text-primary/90">{formatNumber(experimentXP)} / {formatNumber(xpReq)} XP</span>
                     </div>
                     <Progress
                         value={xpPercent}

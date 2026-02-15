@@ -403,7 +403,7 @@ export const GameProvider = ({ children }) => {
             return {
                 ...prev,
                 experimentRank: prev.experimentRank + 1,
-                experimentXP: Math.max(0, prev.experimentXP - xpReq),
+                experimentXP: 0,
                 talentPoints: prev.talentPoints + 1
             };
         });

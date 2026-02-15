@@ -1,4 +1,5 @@
 import Decimal from 'break_eternity.js';
+import { formatNumber } from '../utils/formatUtils';
 
 export const MISSION_TYPES = {
     COLLECT_FRAGMENTS: 'collect_fragments',
@@ -34,12 +35,12 @@ const generateMissions = () => {
                 mission.type = MISSION_TYPES.COLLECT_FRAGMENTS;
                 mission.name = `Data Harvest ${rank}.${i}`;
                 mission.target = fragmentScale;
-                mission.description = `Collect ${fragmentScale.toNumber().toLocaleString()} Fragments.`;
+                mission.description = `Collect ${formatNumber(fragmentScale)} Fragments.`;
                 const rewardAmount = fragmentScale.div(2);
                 mission.reward = {
                     type: 'reservoir',
                     amount: rewardAmount,
-                    label: `${rewardAmount.toNumber().toLocaleString()} Fragments`
+                    label: `${formatNumber(rewardAmount)} Fragments`
                 };
             } else if (typeIndex === 1) {
                 mission.type = MISSION_TYPES.REACH_MILESTONES;
@@ -53,7 +54,7 @@ const generateMissions = () => {
                 const amount = fragmentScale.div(5).ceil();
                 mission.name = `Stability Fund ${rank}.${i}`;
                 mission.target = amount;
-                mission.description = `Deposit ${amount.toNumber().toLocaleString()} Fragments into the Treasury.`;
+                mission.description = `Deposit ${formatNumber(amount)} Fragments into the Treasury.`;
             } else if (typeIndex === 3) {
                 mission.type = MISSION_TYPES.OWN_GENERATOR;
                 // Target a generator within reach (usually rank-related)
@@ -63,7 +64,7 @@ const generateMissions = () => {
                 mission.genId = genId;
                 mission.name = `Unit Deployment ${rank}.${i}`;
                 mission.target = amount;
-                mission.description = `Own ${amount.toNumber().toLocaleString()} Units of Generator ${genId + 1}.`;
+                mission.description = `Own ${formatNumber(amount)} Units of Generator ${genId + 1}.`;
             } else {
                 mission.type = MISSION_TYPES.BUY_RESEARCH;
                 // Slower scaling: rank * 1.2 instead of rank * 1.5

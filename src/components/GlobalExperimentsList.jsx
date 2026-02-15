@@ -72,7 +72,7 @@ const GlobalExperimentsList = () => {
                 let progress = new Decimal(0);
                 if (mission.type === MISSION_TYPES.REACH_MILESTONES) progress = new Decimal(missionStats.totalMilestones);
                 if (mission.type === MISSION_TYPES.COLLECT_FRAGMENTS) progress = iterons;
-                if (mission.type === MISSION_TYPES.STABILITY_TIME) progress = new Decimal(missionStats.consecutiveStableTime);
+                if (mission.type === MISSION_TYPES.DEPOSIT_FRAGMENTS) progress = missionStats.totalDeposited || new Decimal(0);
                 if (mission.type === MISSION_TYPES.OWN_GENERATOR) progress = gameState.generators[mission.genId].amount;
                 if (mission.type === MISSION_TYPES.BUY_RESEARCH) {
                     const totalLevels = Object.values(gameState.research || {}).reduce((sum, lvl) => sum + lvl, 0);
@@ -94,8 +94,8 @@ const GlobalExperimentsList = () => {
             {/* Rank Progress Bar / Level Up Button */}
             <div
                 className={`relative flex items-center gap-4 bg-card border rounded-xl px-4 py-3 shadow-sm transition-all duration-300 ${canRankUp
-                        ? 'border-primary ring-2 ring-primary/20 cursor-pointer hover:bg-primary/5'
-                        : 'border-border hover:bg-accent/10'
+                    ? 'border-primary ring-2 ring-primary/20 cursor-pointer hover:bg-primary/5'
+                    : 'border-border hover:bg-accent/10'
                     }`}
                 onClick={() => canRankUp && rankUp()}
             >
@@ -111,7 +111,7 @@ const GlobalExperimentsList = () => {
                         <span className="text-muted-foreground uppercase opacity-50 tracking-widest">
                             {canRankUp ? 'CLICK TO ADVANCE RANK' : 'Growth Progress'}
                         </span>
-                        <span className="text-primary/90">{experimentXP} / {xpReq} XP</span>
+                        <span className="text-primary/90">{formatNumber(experimentXP)} / {formatNumber(xpReq)} XP</span>
                     </div>
                     <Progress
                         value={xpPercent}
